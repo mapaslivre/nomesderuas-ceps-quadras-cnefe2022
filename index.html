@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>JOSM Video Tour</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8f8f8;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      color: #333;
+    }
+
+    .sidebar {
+      width: 280px;
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .sidebar h3 {
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
+      margin-top: 20px;
+    }
+
+    .video-link {
+      display: block;
+      color: white;
+      text-decoration: none;
+      margin: 8px 0;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .video-link:hover {
+      text-decoration: underline;
+    }
+
+    .content {
+      flex-grow: 1;
+      padding: 40px;
+      text-align: center;
+    }
+
+    video {
+      border: 4px solid #444;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 400px;
+      height: auto;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 14px;
+      color: #555;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h3>Atalhos</h3>
+    <div id="atalhosList"></div>
+
+    <h3>Outras Dicas</h3>
+    <div id="outrasDicasList"></div>
+  </div>
+
+  <div class="content">
+    <h2>JOSM Videos de Treinamento Tour</h2>
+
+    <video id="videoPlayer" controls>
+      <source id="videoSource" src="" type="video/webm">
+      Seu navegador não suporta o vídeo.
+    </video>
+
+    <div>
+      <button id="nextButton" disabled>Próximo ▶</button>
+    </div>
+
+    <p>Assista os vídeos em ordem. O botão "próximo" ativará após cada video finalizar.</p>
+    <p>Nota: Vídeo sem áudio. Duplo clique para tela cheia. Esc para sair.</p>
+  </div>
+
+  <script>
+    const atalhos = [
+      "alt_x.webm", "a.webm", "b.webm", "ctrl_b.webm", "ctrl_c_ctrl_v.webm",
+      "ctrl_shift_g.webm", "ctrl_z_ctrl_y.webm", "c.webm", "Del.webm", "Esc.webm",
+      "e.webm", "g.webm", "i.webm", "j.webm", "m.webm", "o.webm", "p.webm",
+      "q_comPontosFixosExternos.webm", "q_comPontosFixos.webm", "q.webm",
+      "shift_c.webm", "shift_e.webm", "shift_j.webm", "shift_o.webm", "shift_y.webm",
+      "s.webm", "w.webm", "x.webm"
+    ];
+
+    const outrasDicas = [
+      "ctrl_alt_movermouse(girar).webm", "ctrl_alt_movermouse(redimensionar).webm",
+      "desenharNoTopo_arrastarParaBase.webm", "dominando_a_janela_de_validacao.webm",
+      "dominando_multiplas_camadas.webm", "exemplo_janela_filtro.webm",
+      "ligar_desligar_camadas.webm"
+    ];
+
+    const video = document.getElementById("videoPlayer");
+    const source = document.getElementById("videoSource");
+    const nextButton = document.getElementById("nextButton");
+
+    const videoList = [...atalhos.map(v => "videos/atalhos_teclado/" + v), ...outrasDicas.map(v => "videos/outras_dicas/" + v)];
+    let current = 0;
+
+    function loadVideoByPath(path, index) {
+      source.src = path;
+      video.load();
+      current = index;
+      nextButton.disabled = true;
+    }
+
+    function createList(containerId, files, folder, offset) {
+      const container = document.getElementById(containerId);
+      files.forEach((file, idx) => {
+        const link = document.createElement("a");
+        link.textContent = file.replace(".webm", "").replace(/_/g, " ");
+        link.className = "video-link";
+        link.onclick = () => loadVideoByPath(`videos/${folder}/${file}`, offset + idx);
+        container.appendChild(link);
+      });
+    }
+
+    video.onended = () => {
+      if (current < videoList.length - 1) {
+        nextButton.disabled = false;
+      }
+    };
+
+    nextButton.onclick = () => {
+      if (current < videoList.length - 1) {
+        current++;
+        loadVideoByPath(videoList[current], current);
+      }
+    };
+
+    // Inicializa as listas
+    createList("atalhosList", atalhos, "atalhos_teclado", 0);
+    createList("outrasDicasList", outrasDicas, "outras_dicas", atalhos.length);
+
+    // Carrega o primeiro vídeo
+    loadVideoByPath(videoList[0], 0);
+  </script>
+
+</body>
+</html>
+
