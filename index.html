@@ -41,19 +41,58 @@
       text-decoration: underline;
     }
 
+    .video-link.active {
+      background: #1abc9c;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
     .content {
       flex-grow: 1;
       padding: 40px;
       text-align: center;
+      position: relative;
+    }
+
+    .video-container {
+      position: relative;
+      display: inline-block;
     }
 
     video {
       border: 4px solid #444;
       border-radius: 10px;
       width: 80%;
-      max-width: 400px;
+      max-width: 600px;
       height: auto;
       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .overlay-controls {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      flex-direction: row;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .overlay-controls button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .overlay-controls button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
     }
 
     h2 {
@@ -65,21 +104,15 @@
       color: #555;
     }
 
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background: #2c3e50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease;
+    /* Fullscreen adjustments */
+    video:fullscreen,
+    .video-container:fullscreen {
+      width: 100%;
+      height: 100%;
     }
 
-    button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
+    .overlay-controls {
+      z-index: 10;
     }
   </style>
 </head>
@@ -94,67 +127,88 @@
   </div>
 
   <div class="content">
-    <h2>JOSM Videos de Treinamento Tour</h2>
+    <h2>JOSM Vídeos de Treinamento Tour</h2>
 
-    <video id="videoPlayer" controls>
-      <source id="videoSource" src="" type="video/webm">
-      Seu navegador não suporta o vídeo.
-    </video>
+    <div class="video-container">
+      <video id="videoPlayer" controls>
+        <source id="videoSource" src="" type="video/webm">
+        Seu navegador não suporta o vídeo.
+      </video>
 
-    <div>
-      <button id="nextButton" disabled>Próximo ▶</button>
+      <div class="overlay-controls" id="overlayControls">
+        <button id="prevButton">◀ Anterior</button>
+        <button id="nextButton">Próximo ▶</button>
+      </div>
     </div>
 
-    <p>Assista os vídeos em ordem. O botão "próximo" ativará após cada video finalizar.</p>
-    <p>Nota: Vídeo sem áudio. Duplo clique para tela cheia. Esc para sair.</p>
+    <p>Assista os vídeos em ordem. Os botões aparecem ao fim de cada vídeo.</p>
+    <p>Nota: Vídeo sem áudio. Duplo clique no vídeo para tela cheia. Esc para sair.</p>
   </div>
 
   <script>
     const atalhos = [
-      "alt_x.webm", "a.webm", "b.webm", "ctrl_b.webm", "ctrl_c_ctrl_v.webm",
-      "ctrl_shift_g.webm", "ctrl_z_ctrl_y.webm", "c.webm", "Del.webm", "Esc.webm",
-      "e.webm", "g.webm", "i.webm", "j.webm", "m.webm", "o.webm", "p.webm",
-      "q_comPontosFixosExternos.webm", "q_comPontosFixos.webm", "q.webm",
-      "shift_c.webm", "shift_e.webm", "shift_j.webm", "shift_o.webm", "shift_y.webm",
-      "s.webm", "w.webm", "x.webm"
+      "a_alt-pressionado.webm", "a_(angulo_travado).webm", "a_ctrl-pressionado.webm", "alt_x.webm",
+      "a_shift-pressionado.webm", "a.webm", "b.webm", "ctrl_alt_movermouse-para-dimensionar.webm",
+      "ctrl_alt_mover-mouse-para-girar.webm", "ctrl_b.webm", "ctrl_c_ctrl_v.webm",
+      "ctrl_delete_entao-segura-ctrl.webm", "ctrl_delete_entao-segura-shift.webm", "ctrl_delete.webm",
+      "ctrl_d.webm", "ctrl_h.webm", "ctrl_i.webm", "ctrl_shift_g.webm", "ctrl_shift_h.webm",
+      "ctrl_shift_i.webm", "ctrl_shift_seta-baixo.webm", "ctrl_shift_seta-cima.webm",
+      "ctrl_teclas-direcionais.webm", "ctrl_z_ctrl_y.webm", "c.webm", "Del.webm", "Esc.webm",
+      "e.webm", "g.webm", "i.webm", "j.webm", "m.webm", "o.webm", "p.webm", "q_comPontosFixosExternos.webm",
+      "q_comPontosFixos.webm", "q.webm", "r.webm", "shift_c.webm", "shift_e.webm", "shift_j.webm",
+      "shift_m.webm", "shift_o.webm", "shift_p.webm", "shift_teclas-direcionais.webm",
+      "shift_y.webm", "s.webm", "w.webm", "x_alt-pressionado.webm", "x_ctrl-pressionado.webm",
+      "x_duploclique.webm", "x_shift-pressionado.webm", "x.webm"
     ];
 
     const outrasDicas = [
-      "ctrl_alt_movermouse(girar).webm", "ctrl_alt_movermouse(redimensionar).webm",
-      "desenharNoTopo_arrastarParaBase.webm", "dominando_a_janela_de_validacao.webm",
+      "desenhar-no-topo_entao_arrastar-para-a-base.webm", "dominando_a_janela_de_validacao.webm",
       "dominando_multiplas_camadas.webm", "exemplo_janela_filtro.webm",
-      "ligar_desligar_camadas.webm"
+      "filtro-como-gerenciador-de-tarefas.webm", "ligar_desligar_camadas.webm"
     ];
 
     const video = document.getElementById("videoPlayer");
     const source = document.getElementById("videoSource");
+    const overlay = document.getElementById("overlayControls");
     const nextButton = document.getElementById("nextButton");
+    const prevButton = document.getElementById("prevButton");
+
+    const atalhosList = document.getElementById("atalhosList");
+    const outrasDicasList = document.getElementById("outrasDicasList");
 
     const videoList = [...atalhos.map(v => "videos/atalhos_teclado/" + v), ...outrasDicas.map(v => "videos/outras_dicas/" + v)];
     let current = 0;
+    let allLinks = [];
+
+    function highlightLink(index) {
+      allLinks.forEach((link, i) => {
+        link.classList.toggle("active", i === index);
+      });
+    }
 
     function loadVideoByPath(path, index) {
       source.src = path;
       video.load();
       current = index;
-      nextButton.disabled = true;
+      overlay.style.display = "none";
+      highlightLink(index);
     }
 
-    function createList(containerId, files, folder, offset) {
-      const container = document.getElementById(containerId);
+    function createList(container, files, folder, offset) {
       files.forEach((file, idx) => {
         const link = document.createElement("a");
         link.textContent = file.replace(".webm", "").replace(/_/g, " ");
         link.className = "video-link";
         link.onclick = () => loadVideoByPath(`videos/${folder}/${file}`, offset + idx);
         container.appendChild(link);
+        allLinks[offset + idx] = link;
       });
     }
 
     video.onended = () => {
-      if (current < videoList.length - 1) {
-        nextButton.disabled = false;
-      }
+      overlay.style.display = "flex";
+      nextButton.disabled = current >= videoList.length - 1;
+      prevButton.disabled = current <= 0;
     };
 
     nextButton.onclick = () => {
@@ -164,14 +218,27 @@
       }
     };
 
-    // Inicializa as listas
-    createList("atalhosList", atalhos, "atalhos_teclado", 0);
-    createList("outrasDicasList", outrasDicas, "outras_dicas", atalhos.length);
+    prevButton.onclick = () => {
+      if (current > 0) {
+        current--;
+        loadVideoByPath(videoList[current], current);
+      }
+    };
 
-    // Carrega o primeiro vídeo
+    // Fullscreen support (duplo clique no vídeo)
+    const videoContainer = video.parentElement;
+    video.ondblclick = () => {
+      if (!document.fullscreenElement) {
+        videoContainer.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    };
+
+    createList(atalhosList, atalhos, "atalhos_teclado", 0);
+    createList(outrasDicasList, outrasDicas, "outras_dicas", atalhos.length);
     loadVideoByPath(videoList[0], 0);
   </script>
-
 </body>
 </html>
 
